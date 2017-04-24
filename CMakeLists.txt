@@ -7,17 +7,23 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   sensor_msgs
   cv_bridge
-  image_transport
 )
 
 catkin_package(
-  CATKIN_DEPENDS message_runtime sensor_msgs image_transport
+  CATKIN_DEPENDS message_runtime sensor_msgs
 )
 
 include_directories(
   ${CATKIN_INCLUDE_DIRS}
+  include
 )
 
-add_executable(place_recognition src/place_recognition.cpp)
-target_link_libraries(place_recognition ${catkin_LIBRARIES})
-add_dependencies(place_recognition sensor_msgs cv_bridge image_transport)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
+
+add_library(${PROJECT_NAME} SHARED
+src/PlaceRecognizer.cpp
+)
+
+add_executable(place_recognizer src/place_recognition.cpp)
+target_link_libraries(place_recognizer ${PROJECT_NAME} ${catkin_LIBRARIES})
+add_dependencies(place_recognizer sensor_msgs cv_bridge image_transport)
