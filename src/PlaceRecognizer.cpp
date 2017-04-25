@@ -39,6 +39,10 @@ PlaceRecognizer::PlaceRecognizer() {
     input_sub_ = nh.subscribe (input_topic, 3, &PlaceRecognizer::image_callback, this);
     trigger_sub_ = nh.subscribe (trigger_topic, 3, &PlaceRecognizer::trigger_callback,this);
     output_pub_ = nh.advertise<sensor_msgs::Image> (output_topic, 3);
+
+    ROS_INFO ("Loading Vocabulary");
+    loadVocabulary();
+    ROS_INFO ("Place Recognizer Setup OK");
 }
 
 PlaceRecognizer::~PlaceRecognizer() {}
@@ -65,4 +69,18 @@ void PlaceRecognizer::image_callback (const sensor_msgs::ImageConstPtr &msg) {
 
     // Publish the augmented image
     output_pub_.publish (output_ptr_->toImageMsg());
+}
+
+// Load Vocabulary
+void PlaceRecognizer::loadVocabulary () {
+    // branching factor and depth levels - Adapted from DBoW2 Demo
+    const int k = 12;
+    const int L = 3;
+    const DBoW2::WeightingType weight = DBoW2::TF_IDF;
+    const DBoW2::ScoringType score = DBoW2::L1_NORM;
+
+    {
+        boost::shared_ptr<BriefVocabulary> temp (new BriefVocabulary (k, L, weight, score));
+        vocabulary_ptr_ = temp;
+    }
 }

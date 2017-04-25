@@ -7,6 +7,9 @@
 #include <sensor_msgs/image_encodings.h>
 #include <cv_bridge/cv_bridge.h>
 
+#include <boost/smart_ptr.hpp>
+#include "DBoW2/DBoW2.h"
+
 namespace place_recognizer {
 
 class PlaceRecognizer {
@@ -19,11 +22,14 @@ private:
     cv_bridge::CvImagePtr image_ptr_;
     cv_bridge::CvImagePtr output_ptr_;
 
+    boost::shared_ptr<BriefVocabulary> vocabulary_ptr_;
+
 public:
     PlaceRecognizer ();
     ~PlaceRecognizer ();
     void trigger_callback (const std_msgs::String &msg);
     void image_callback (const sensor_msgs::Image::ConstPtr &msg);
+    void loadVocabulary ();
 
 
 };
