@@ -30,7 +30,7 @@ else(${DLib_FOUND})
       GIT_TAG v1.1-nonfree
       INSTALL_DIR ${DEPENDENCY_INSTALL_DIR}
       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>)
-    add_custom_target(DLib_Dependencies ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} DEPENDS DLib)
+    add_custom_target(DLib_LIBS ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} DEPENDS DLib)
     include_directories(${DEPENDENCY_DIR}/src/DLib/include)
   else()
     message(SEND_ERROR "Please, activate DOWNLOAD_DLib_dependency option or download manually")
@@ -57,7 +57,7 @@ else(${DBoW2_FOUND})
       INSTALL_COMMAND "make" "install"
       INSTALL_DIR ${DEPENDENCY_INSTALL_DIR}
       CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>)
-    add_custom_target(DBoW2_Dependencies ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} DEPENDS DLib)
+    add_custom_target(DBoW2_LIBS ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} DEPENDS DLib)
     include_directories(${DBoW2_INCLUDE_DIRS})
     include_directories(${DEPENDENCY_DIR}/src/DBoW2/include)
   else()
@@ -93,8 +93,8 @@ add_dependencies(place_recognizer
 sensor_msgs
 cv_bridge
 image_transport
-DBoW2
-DLib)
+DBoW2_LIBS
+DLib_LIBS)
 
 target_link_libraries(place_recognizer
 ${PROJECT_NAME}
