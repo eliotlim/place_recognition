@@ -30,7 +30,6 @@ public:
     void trigger_callback (const std_msgs::String &msg);
     void image_callback (const sensor_msgs::Image::ConstPtr &msg);
     void loadVocabulary ();
-    bool validatePubSubState ();
 
 };
 

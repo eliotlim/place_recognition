@@ -39,7 +39,6 @@ PlaceRecognizer::PlaceRecognizer() {
     input_sub_ = nh.subscribe (input_topic, 3, &PlaceRecognizer::image_callback, this);
     trigger_sub_ = nh.subscribe (trigger_topic, 3, &PlaceRecognizer::trigger_callback, this);
     output_pub_ = nh.advertise<sensor_msgs::Image> (output_topic, 3);
-    validatePubSubState();
 
     ROS_INFO ("Loading Vocabulary");
     loadVocabulary();
@@ -83,18 +82,5 @@ void PlaceRecognizer::loadVocabulary () {
     {
         boost::shared_ptr<BriefVocabulary> temp (new BriefVocabulary (k, L, weight, score));
         vocabulary_ptr_ = temp;
-    }
-}
-
-// Verify that publishers and subscribers are still alive
-bool PlaceRecognizer::validatePubSubState () {
-    if (!input_sub_) {
-        ROS_ERROR ("PlaceRecognizer.input_sub_ is NULL");
-    }
-    if (!trigger_sub_) {
-        ROS_ERROR ("PlaceRecognizer.trigger_sub_ is NULL");
-    }
-    if (!output_pub_) {
-        ROS_ERROR ("PlaceRecognizer.output_pub_ is NULL");
     }
 }

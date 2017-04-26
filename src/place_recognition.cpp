@@ -25,7 +25,7 @@ int main (int argc, char** argv) {
     ros::NodeHandle nh;
     ROS_INFO ("Place Recognition version %s", VERSION_STRING);
 
-    ROS_INFO ("Creating PlaceRecognizer")
+    ROS_INFO ("Creating PlaceRecognizer");
     boost::shared_ptr<place_recognizer::PlaceRecognizer> place_recognizer_ptr (new place_recognizer::PlaceRecognizer());
 
     ROS_INFO ("Spinner Initialized");
