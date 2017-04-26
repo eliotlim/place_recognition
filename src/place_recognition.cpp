@@ -21,12 +21,15 @@
 
 int main (int argc, char** argv) {
     // ros::init must be the first call in main()
-    ros::init(argc, argv, "place_recognition");
-    ROS_INFO ("Place Recognition version %s", VERSION_STRING);
-    
+    ros::init (argc, argv, "place_recognition");
     ros::NodeHandle nh;
+    ROS_INFO ("Place Recognition version %s", VERSION_STRING);
 
-    place_recognizer::PlaceRecognizer();
+    ROS_INFO ("Creating PlaceRecognizer")
+    boost::shared_ptr<place_recognizer::PlaceRecognizer> place_recognizer_ptr (new place_recognizer::PlaceRecognizer());
 
+    ROS_INFO ("Spinner Initialized");
     ros::spin();
+
+    ROS_INFO ("Place Recognition EXIT");
 }
