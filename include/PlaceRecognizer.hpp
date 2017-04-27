@@ -32,13 +32,16 @@ private:
     cv_bridge::CvImagePtr output_ptr_;
 
     boost::shared_ptr<ORBVocabulary> vocabulary_ptr_;
+    boost::shared_ptr<ORBDatabase> database_ptr_;
 
 public:
     PlaceRecognizer ();
     ~PlaceRecognizer ();
     void trigger_callback (const std_msgs::String &msg);
     void image_callback (const sensor_msgs::Image::ConstPtr &msg);
-    void loadVocabulary ();
+    bool loadVocabulary ();
+    bool loadDatabase ();
+    bool saveDatabase ();
 
 };
 
