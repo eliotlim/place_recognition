@@ -41,7 +41,7 @@ PlaceRecognizer::PlaceRecognizer() {
     output_pub_ = nh.advertise<sensor_msgs::Image> (output_topic, 3);
 
     loadDatabase();
-    saveDatabase();
+    // TODO: Save Database if modified
     ROS_INFO ("Place Recognizer Setup OK");
 }
 
@@ -87,7 +87,7 @@ bool PlaceRecognizer::loadVocabulary () {
     }
 
     try {
-        /** This REQUIRES the patched version of TemplatedVocabulary.h
+        /** This REQUIRES the included version of TemplatedVocabulary.h which is adapted
           * from: https://github.com/raulmur/ORB_SLAM2/raw/master/Thirdparty/DBoW2/DBoW2/TemplatedVocabulary.h
         **/
         ROS_INFO ("Loading Vocabulary");
@@ -102,16 +102,16 @@ bool PlaceRecognizer::loadVocabulary () {
 
 // Load Database: Returns true if success, false if fail
 bool PlaceRecognizer::loadDatabase () {
-    std::string db_filename ("ORBdb.xml");
+    std::string db_filename ("ORBdb.yml");
     bool fail = true;
 
     // Attempt to load the feature database from disk first.
     try {
-        ROS_INFO ("Database - Loading - file: %s", db_filename.c_str());
+        ROS_DEBUG ("Database - Loading - file: %s", db_filename.c_str());
         boost::shared_ptr<ORBDatabase> temp (new ORBDatabase (db_filename));
         database_ptr_ = temp;
         fail = false;
-        ROS_INFO ("Database - Load SUCCESS");
+        ROS_DEBUG ("Database - Load SUCCESS");
     } catch (std::string &exception_msg) {
         ROS_WARN ("Database - Load FAIL - file: %s : %s", db_filename.c_str(), exception_msg.c_str());
     } catch (cv::Exception &exception) {
@@ -124,22 +124,22 @@ bool PlaceRecognizer::loadDatabase () {
         boost::shared_ptr<ORBDatabase> temp (new ORBDatabase (*vocabulary_ptr_, false, 0));
         database_ptr_ = temp;
         fail = false;
-        ROS_INFO ("Database - Create SUCCESS");
+        ROS_DEBUG ("Database - Create SUCCESS");
     }
 
     return !fail;
 }
 
 bool PlaceRecognizer::saveDatabase () {
-    const std::string db_filename ("ORBdb.xml");
+    const std::string db_filename ("ORBdb.yml");
 
     // Attempt to save database to disk
-    ROS_INFO ("Database - Saving");
+    ROS_DEBUG ("Database - Saving");
     if (database_ptr_ != NULL)
         try {
             //ROS_INFO ("Database - Save - file: %s", db_filename.c_str());
             database_ptr_->save (db_filename);
-            ROS_INFO ("Database - Save SUCCESS");
+            ROS_DEBUG ("Database - Save SUCCESS");
         } catch (std::string &exception_msg) {
             ROS_WARN ("Database - Save FAIL - file: %s : %s", db_filename.c_str(), exception_msg.c_str());
             return false;
