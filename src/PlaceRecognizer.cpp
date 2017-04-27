@@ -40,7 +40,8 @@ PlaceRecognizer::PlaceRecognizer() {
     trigger_sub_ = nh.subscribe (trigger_topic, 3, &PlaceRecognizer::trigger_callback, this);
     output_pub_ = nh.advertise<sensor_msgs::Image> (output_topic, 3);
 
-    loadVocabulary();
+    loadDatabase();
+    saveDatabase();
     ROS_INFO ("Place Recognizer Setup OK");
 }
 
@@ -70,8 +71,8 @@ void PlaceRecognizer::image_callback (const sensor_msgs::ImageConstPtr &msg) {
     output_pub_.publish (output_ptr_->toImageMsg());
 }
 
-// Load Vocabulary
-void PlaceRecognizer::loadVocabulary () {
+// Load Vocabulary : Returns true if success, false if fail
+bool PlaceRecognizer::loadVocabulary () {
     // branching factor and depth levels - Adapted from DBoW2 Demo
     const int k = 12;
     const int L = 3;
@@ -91,8 +92,67 @@ void PlaceRecognizer::loadVocabulary () {
         **/
         ROS_INFO ("Loading Vocabulary");
         vocabulary_ptr_->loadFromTextFile (voc_filename);
-    } catch (std::string &str) {
-        ROS_WARN ("Problem loading vocabulary from file %s : %s", voc_filename.c_str(), str.c_str());
+    } catch (std::string &exception_msg) {
+        ROS_WARN ("Problem loading vocabulary from file %s : %s", voc_filename.c_str(), exception_msg.c_str());
+        return false;
     }
 
+    return true;
+}
+
+// Load Database: Returns true if success, false if fail
+bool PlaceRecognizer::loadDatabase () {
+    std::string db_filename ("ORBdb.xml");
+    bool fail = true;
+
+    // Attempt to load the feature database from disk first.
+    try {
+        ROS_INFO ("Database - Loading - file: %s", db_filename.c_str());
+        boost::shared_ptr<ORBDatabase> temp (new ORBDatabase (db_filename));
+        database_ptr_ = temp;
+        fail = false;
+        ROS_INFO ("Database - Load SUCCESS");
+    } catch (std::string &exception_msg) {
+        ROS_WARN ("Database - Load FAIL - file: %s : %s", db_filename.c_str(), exception_msg.c_str());
+    } catch (cv::Exception &exception) {
+        ROS_WARN ("Database - Load FAIL - file: %s : %s", db_filename.c_str(), exception.what());
+    }
+
+    // If feature database on disk is invalid, load vocabulary and create database.
+    if (fail) {
+        loadVocabulary();
+        boost::shared_ptr<ORBDatabase> temp (new ORBDatabase (*vocabulary_ptr_, false, 0));
+        database_ptr_ = temp;
+        fail = false;
+        ROS_INFO ("Database - Create SUCCESS");
+    }
+
+    return !fail;
+}
+
+bool PlaceRecognizer::saveDatabase () {
+    const std::string db_filename ("ORBdb.xml");
+
+    // Attempt to save database to disk
+    ROS_INFO ("Database - Saving");
+    if (database_ptr_ != NULL)
+        try {
+            //ROS_INFO ("Database - Save - file: %s", db_filename.c_str());
+            database_ptr_->save (db_filename);
+            ROS_INFO ("Database - Save SUCCESS");
+        } catch (std::string &exception_msg) {
+            ROS_WARN ("Database - Save FAIL - file: %s : %s", db_filename.c_str(), exception_msg.c_str());
+            return false;
+        } catch (cv::Exception &exception) {
+            ROS_WARN ("Database - Save FAIL - file: %s : %s", db_filename.c_str(), exception.what());
+            return false;
+        }
+    else
+        ROS_WARN ("Database - Save FAIL - NULL");
+
+    /** Three cases: db_ptr_ == NULL -> return false
+      * db_ptr_ != NULL, save success -> return db_ptr != NULL => return true
+      * db_ptr_ != NULL, save fail -> return false
+    **/
+    return database_ptr_ != NULL;
 }
