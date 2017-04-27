@@ -8,6 +8,7 @@
 #include <cv_bridge/cv_bridge.h>
 
 #include <boost/smart_ptr.hpp>
+
 #include "DBoW2/DBoW2.h"
 
 namespace place_recognizer {
