@@ -12,6 +12,14 @@
 
 namespace place_recognizer {
 
+/// ORB Vocabulary
+typedef DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB>
+    ORBVocabulary;
+
+/// ORB Database
+typedef DBoW2::TemplatedDatabase<DBoW2::FORB::TDescriptor, DBoW2::FORB>
+    ORBDatabase;
+
 class PlaceRecognizer {
 public:
 
@@ -22,7 +30,7 @@ private:
     cv_bridge::CvImagePtr image_ptr_;
     cv_bridge::CvImagePtr output_ptr_;
 
-    boost::shared_ptr<BriefVocabulary> vocabulary_ptr_;
+    boost::shared_ptr<ORBVocabulary> vocabulary_ptr_;
 
 public:
     PlaceRecognizer ();
@@ -32,6 +40,7 @@ public:
     void loadVocabulary ();
 
 };
+
 
 }
 

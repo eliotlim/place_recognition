@@ -4,6 +4,6 @@
 #include <string>
 #include <ros/ros.h>
 
-const char* VERSION_STRING = "0.0.8";
+const char* VERSION_STRING = "0.0.9";
 
 #endif

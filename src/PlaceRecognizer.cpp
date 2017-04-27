@@ -40,7 +40,6 @@ PlaceRecognizer::PlaceRecognizer() {
     trigger_sub_ = nh.subscribe (trigger_topic, 3, &PlaceRecognizer::trigger_callback, this);
     output_pub_ = nh.advertise<sensor_msgs::Image> (output_topic, 3);
 
-    ROS_INFO ("Loading Vocabulary");
     loadVocabulary();
     ROS_INFO ("Place Recognizer Setup OK");
 }
@@ -79,8 +78,21 @@ void PlaceRecognizer::loadVocabulary () {
     const DBoW2::WeightingType weight = DBoW2::TF_IDF;
     const DBoW2::ScoringType score = DBoW2::L1_NORM;
 
+    const std::string voc_filename = "ORBvoc.txt";
+
     {
-        boost::shared_ptr<BriefVocabulary> temp (new BriefVocabulary (k, L, weight, score));
+        boost::shared_ptr<ORBVocabulary> temp (new ORBVocabulary (k, L, weight, score));
         vocabulary_ptr_ = temp;
     }
+
+    try {
+        /** This REQUIRES the patched version of TemplatedVocabulary.h
+          * from: https://github.com/raulmur/ORB_SLAM2/raw/master/Thirdparty/DBoW2/DBoW2/TemplatedVocabulary.h
+        **/
+        ROS_INFO ("Loading Vocabulary");
+        vocabulary_ptr_->loadFromTextFile (voc_filename);
+    } catch (std::string &str) {
+        ROS_WARN ("Problem loading vocabulary from file %s : %s", voc_filename.c_str(), str.c_str());
+    }
+
 }
