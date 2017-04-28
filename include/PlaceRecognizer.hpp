@@ -10,6 +10,7 @@
 #include <boost/smart_ptr.hpp>
 
 #include "DBoW2/DBoW2.h"
+#include <opencv2/features2d/features2d.hpp>
 
 namespace place_recognizer {
 
@@ -33,6 +34,9 @@ private:
 
     boost::shared_ptr<ORBVocabulary> vocabulary_ptr_;
     boost::shared_ptr<ORBDatabase> database_ptr_;
+
+    cv::Ptr<cv::FeatureDetector> detector_ptr_;
+    cv::Ptr<cv::DescriptorExtractor> extractor_ptr_;
 
 public:
     PlaceRecognizer ();
