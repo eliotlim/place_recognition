@@ -72,19 +72,15 @@ void PlaceRecognizer::image_callback (const sensor_msgs::ImageConstPtr &msg) {
 }
 
 // Load Vocabulary : Returns true if success, false if fail
-bool PlaceRecognizer::loadVocabulary () {
+bool PlaceRecognizer::loadVocabulary (const std::string& voc_filename) {
+
     // branching factor and depth levels - Adapted from DBoW2 Demo
     const int k = 12;
     const int L = 3;
     const DBoW2::WeightingType weight = DBoW2::TF_IDF;
     const DBoW2::ScoringType score = DBoW2::L1_NORM;
 
-    const std::string voc_filename = "ORBvoc.txt";
-
-    {
-        boost::shared_ptr<ORBVocabulary> temp (new ORBVocabulary (k, L, weight, score));
-        vocabulary_ptr_ = temp;
-    }
+    vocabulary_ptr_ = boost::shared_ptr<ORBVocabulary> (new ORBVocabulary (k, L, weight, score));
 
     try {
         /** This REQUIRES the included version of TemplatedVocabulary.h which is adapted
@@ -101,15 +97,13 @@ bool PlaceRecognizer::loadVocabulary () {
 }
 
 // Load Database: Returns true if success, false if fail
-bool PlaceRecognizer::loadDatabase () {
-    std::string db_filename ("ORBdb.yml");
+bool PlaceRecognizer::loadDatabase (const std::string& db_filename) {
     bool fail = true;
 
     // Attempt to load the feature database from disk first.
     try {
         ROS_DEBUG ("Database - Loading - file: %s", db_filename.c_str());
-        boost::shared_ptr<ORBDatabase> temp (new ORBDatabase (db_filename));
-        database_ptr_ = temp;
+        database_ptr_ = boost::shared_ptr<ORBDatabase> (new ORBDatabase (db_filename));
         fail = false;
         ROS_DEBUG ("Database - Load SUCCESS");
     } catch (std::string &exception_msg) {
@@ -121,8 +115,7 @@ bool PlaceRecognizer::loadDatabase () {
     // If feature database on disk is invalid, load vocabulary and create database.
     if (fail) {
         loadVocabulary();
-        boost::shared_ptr<ORBDatabase> temp (new ORBDatabase (*vocabulary_ptr_, false, 0));
-        database_ptr_ = temp;
+        database_ptr_ = boost::shared_ptr<ORBDatabase> (new ORBDatabase (*vocabulary_ptr_, false, 0));
         fail = false;
         ROS_DEBUG ("Database - Create SUCCESS");
     }
@@ -130,8 +123,8 @@ bool PlaceRecognizer::loadDatabase () {
     return !fail;
 }
 
-bool PlaceRecognizer::saveDatabase () {
-    const std::string db_filename ("ORBdb.yml");
+// Save Database: Returns true if success, false if fail
+bool PlaceRecognizer::saveDatabase (const std::string& db_filename) {
 
     // Attempt to save database to disk
     ROS_DEBUG ("Database - Saving");

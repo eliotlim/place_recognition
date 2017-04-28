@@ -39,9 +39,9 @@ public:
     ~PlaceRecognizer ();
     void trigger_callback (const std_msgs::String &msg);
     void image_callback (const sensor_msgs::Image::ConstPtr &msg);
-    bool loadVocabulary ();
-    bool loadDatabase ();
-    bool saveDatabase ();
+    bool loadVocabulary (const std::string& voc_filename = "ORBvoc.txt");
+    bool loadDatabase (const std::string& db_filename = "ORBdb.yml");
+    bool saveDatabase (const std::string& db_filename = "ORBdb.yml");
 
 };
 
