@@ -42,6 +42,11 @@ PlaceRecognizer::PlaceRecognizer() {
 
     loadDatabase();
     // TODO: Save Database if modified
+
+    // Initialize ORB Feature Detector and Extractors
+    detector_ptr_ = cv::FeatureDetector::create("ORB");
+
+
     ROS_INFO ("Place Recognizer Setup OK");
 }
 
@@ -64,6 +69,11 @@ void PlaceRecognizer::image_callback (const sensor_msgs::ImageConstPtr &msg) {
     } catch (cv_bridge::Exception &e) {
         ROS_ERROR ("cv_bridge exception: %s", e.what());
     }
+
+    // Identify and Extract Features using ORB
+    std::vector<cv::KeyPoint> keypoints;
+    detector_ptr_->detect (image_ptr_->image, keypoints);
+    ROS_INFO ("Detected %lu keypoints", keypoints.size());
 
     // TODO: Perform Database Query for matching images
 
