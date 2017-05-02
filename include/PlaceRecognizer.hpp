@@ -31,7 +31,7 @@ private:
     ros::Publisher output_pub_;
     cv_bridge::CvImagePtr image_ptr_;
     cv_bridge::CvImagePtr output_ptr_;
-    cv::Mat output_descriptors_;
+    std::vector< cv::Mat > output_descriptors_;
 
     boost::shared_ptr<ORBVocabulary> vocabulary_ptr_;
     boost::shared_ptr<ORBDatabase> database_ptr_;
@@ -47,6 +47,8 @@ public:
     bool loadVocabulary (const std::string& voc_filename = "ORBvoc.txt");
     bool loadDatabase (const std::string& db_filename = "ORBdb.yml");
     bool saveDatabase (const std::string& db_filename = "ORBdb.yml");
+
+    void transform_store_descriptors (const cv::Mat& mat);
 
 };
 

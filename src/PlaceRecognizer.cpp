@@ -57,7 +57,6 @@ PlaceRecognizer::~PlaceRecognizer() {}
 void PlaceRecognizer::trigger_callback (const std_msgs::String &msg) {
     //TODO: Implement DB Updating and Tagging
     ROS_INFO ("DB Insertion TRIGGERED");
-    ROS_DEBUG ("cv::Mat output_descriptors_ size: <%d, %d>", output_descriptors_.rows, output_descriptors_.cols);
     DBoW2::EntryId entryID = database_ptr_->add (output_descriptors_);
     ROS_INFO ("DB Inserted EntryID: %u", entryID);
 }
@@ -78,14 +77,16 @@ void PlaceRecognizer::image_callback (const sensor_msgs::ImageConstPtr &msg) {
       *
     **/
     std::vector<cv::KeyPoint> keypoints;
+    cv::Mat descriptors;
     detector_ptr_->detect (image_ptr_->image, keypoints);
     ROS_DEBUG ("Detected %lu keypoints", keypoints.size());
     // Draw Keypoints over output_ptr_
     cv::drawKeypoints (image_ptr_->image, keypoints, output_ptr_->image, cv::DrawMatchesFlags::DEFAULT);
     // Extract Descriptors from Keypoints
     ROS_DEBUG ("Extracting KeyPoints");
-    extractor_ptr_->compute (image_ptr_->image, keypoints, output_descriptors_);
-    ROS_DEBUG ("computed cv::Mat output_descriptors_ size: <%d, %d>", output_descriptors_.rows, output_descriptors_.cols);
+    extractor_ptr_->compute (image_ptr_->image, keypoints, descriptors);
+    ROS_DEBUG ("computed cv::Mat output_descriptors_ size: <%d, %d>", descriptors.rows, descriptors.cols);
+    transform_store_descriptors (descriptors);
 
     // TODO: Perform Database Query for matching images
     if (database_ptr_->size() > 0) {
@@ -178,4 +179,18 @@ bool PlaceRecognizer::saveDatabase (const std::string& db_filename) {
       * db_ptr_ != NULL, save fail -> return false
     **/
     return database_ptr_ != NULL;
+}
+
+void PlaceRecognizer::transform_store_descriptors (const cv::Mat& mat) {
+    // CV_8UC1 matrix only
+    if (mat.type() == 0) {
+        ROS_DEBUG ("Transform - U8C1 cv::Mat to vector<cv::Mat>");
+        ROS_DEBUG ("cv::Mat descriptors type: %i size: <%d, %d>", mat.type(), mat.rows, mat.cols);
+        output_descriptors_ = std::vector< cv::Mat > (mat.cols);
+        for (int col = 0; col < mat.cols; col++) {
+            cv::Rect regionOfInterest (col, 0, 1, mat.rows);
+            output_descriptors_.push_back (cv::Mat (mat, regionOfInterest));
+        }
+        ROS_DEBUG ("Transform - SUCCESS");
+    }
 }
