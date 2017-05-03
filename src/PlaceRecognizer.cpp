@@ -60,7 +60,8 @@ void PlaceRecognizer::trigger_callback (const std_msgs::String &msg) {
     ROS_INFO ("DB Insertion TRIGGERED");
     //DBoW2::EntryId entryID = database_ptr_->add (output_descriptors_);
     DBoW2::BowVector vec;
-    database_ptr_->getVocabulary()->transform (output_descriptors_, vec);
+    // database_ptr_->getVocabulary()->transform (output_descriptors_, vec);
+    database_ptr_->add (output_descriptors_);
     ROS_INFO ("DB - Conversion to BoW Vector - OK");
     //ROS_INFO ("DB Inserted EntryID: %u", entryID);
 }
