@@ -47,6 +47,7 @@ PlaceRecognizer::PlaceRecognizer() {
     // Initialize ORB Feature Detector and Extractors
     detector_ptr_ = cv::Ptr<cv::FeatureDetector> (new cv::ORB(1000));
     extractor_ptr_ = cv::Ptr<cv::DescriptorExtractor> (new cv::ORB(1000));
+    output_descriptors_ = std::vector<cv::Mat>();
 
     ROS_INFO ("Place Recognizer Setup OK");
 }
@@ -189,9 +190,9 @@ void PlaceRecognizer::transform_store_descriptors (const cv::Mat& mat) {
     if (mat.type() == 0) {
         ROS_DEBUG ("Transform - U8C1 cv::Mat to vector<cv::Mat>");
         ROS_DEBUG ("cv::Mat descriptors type: %i size: <%d, %d>", mat.type(), mat.rows, mat.cols);
-        output_descriptors_ = std::vector< cv::Mat > (mat.cols);
-        for (int col = 0; col < mat.cols; col++) {
-            cv::Rect regionOfInterest (col, 0, 1, mat.rows);
+        output_descriptors_.clear();
+        for (int row = 0; row < mat.rows; row++) {
+            cv::Rect regionOfInterest (0, row, mat.cols, 1);
             output_descriptors_.push_back (cv::Mat (mat, regionOfInterest));
         }
         ROS_DEBUG ("Transform - SUCCESS");
