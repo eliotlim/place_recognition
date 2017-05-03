@@ -18,6 +18,7 @@
 
 #include "PlaceRecognizer.hpp"
 #include <string.h>
+#include <iostream>
 
 using namespace place_recognizer;
 
@@ -45,7 +46,8 @@ PlaceRecognizer::PlaceRecognizer() {
 
     // Initialize ORB Feature Detector and Extractors
     detector_ptr_ = cv::Ptr<cv::FeatureDetector> (new cv::ORB(1000));
-
+    extractor_ptr_ = cv::Ptr<cv::DescriptorExtractor> (new cv::ORB(1000));
+    output_descriptors_ = std::vector<cv::Mat>();
 
     ROS_INFO ("Place Recognizer Setup OK");
 }
@@ -56,6 +58,12 @@ PlaceRecognizer::~PlaceRecognizer() {}
 void PlaceRecognizer::trigger_callback (const std_msgs::String &msg) {
     //TODO: Implement DB Updating and Tagging
     ROS_INFO ("DB Insertion TRIGGERED");
+    //DBoW2::EntryId entryID = database_ptr_->add (output_descriptors_);
+    DBoW2::BowVector vec;
+    // database_ptr_->getVocabulary()->transform (output_descriptors_, vec);
+    database_ptr_->add (output_descriptors_);
+    ROS_INFO ("DB - Conversion to BoW Vector - OK");
+    //ROS_INFO ("DB Inserted EntryID: %u", entryID);
 }
 
 // Callback for Image Messages
@@ -70,14 +78,30 @@ void PlaceRecognizer::image_callback (const sensor_msgs::ImageConstPtr &msg) {
         ROS_ERROR ("cv_bridge exception: %s", e.what());
     }
 
-    // Identify and Extract Features using ORB
+    /** Identify and Extract Features using ORB
+      *
+    **/
     std::vector<cv::KeyPoint> keypoints;
+    cv::Mat descriptors;
     detector_ptr_->detect (image_ptr_->image, keypoints);
     ROS_DEBUG ("Detected %lu keypoints", keypoints.size());
     // Draw Keypoints over output_ptr_
     cv::drawKeypoints (image_ptr_->image, keypoints, output_ptr_->image, cv::DrawMatchesFlags::DEFAULT);
+    // Extract Descriptors from Keypoints
+    ROS_DEBUG ("Extracting KeyPoints");
+    extractor_ptr_->compute (image_ptr_->image, keypoints, descriptors);
+    ROS_DEBUG ("computed cv::Mat output_descriptors_ size: <%d, %d>", descriptors.rows, descriptors.cols);
+    transform_store_descriptors (descriptors);
 
     // TODO: Perform Database Query for matching images
+    if (database_ptr_->size() > 0) {
+        ROS_DEBUG ("DB - Querying");
+        static DBoW2::QueryResults results;
+        database_ptr_->query (output_descriptors_, results, 3);
+        ROS_DEBUG ("DB - Parsing Results");
+        DBoW2::Result top_result = *(results.begin());
+        ROS_INFO ("Top Result: Image %u - Score: %f", top_result.Id, top_result.Score);
+    }
 
     // Publish the augmented image
     output_pub_.publish (output_ptr_->toImageMsg());
@@ -117,7 +141,7 @@ bool PlaceRecognizer::loadDatabase (const std::string& db_filename) {
         ROS_DEBUG ("Database - Loading - file: %s", db_filename.c_str());
         database_ptr_ = boost::shared_ptr<ORBDatabase> (new ORBDatabase (db_filename));
         fail = false;
-        ROS_DEBUG ("Database - Load SUCCESS");
+        ROS_INFO ("Database - Load SUCCESS");
     } catch (std::string &exception_msg) {
         ROS_WARN ("Database - Load FAIL - file: %s : %s", db_filename.c_str(), exception_msg.c_str());
     } catch (cv::Exception &exception) {
@@ -129,7 +153,7 @@ bool PlaceRecognizer::loadDatabase (const std::string& db_filename) {
         loadVocabulary();
         database_ptr_ = boost::shared_ptr<ORBDatabase> (new ORBDatabase (*vocabulary_ptr_, false, 0));
         fail = false;
-        ROS_DEBUG ("Database - Create SUCCESS");
+        ROS_INFO ("Database - Create SUCCESS");
     }
 
     return !fail;
@@ -160,4 +184,18 @@ bool PlaceRecognizer::saveDatabase (const std::string& db_filename) {
       * db_ptr_ != NULL, save fail -> return false
     **/
     return database_ptr_ != NULL;
+}
+
+void PlaceRecognizer::transform_store_descriptors (const cv::Mat& mat) {
+    // CV_8UC1 matrix only
+    if (mat.type() == 0) {
+        ROS_DEBUG ("Transform - U8C1 cv::Mat to vector<cv::Mat>");
+        ROS_DEBUG ("cv::Mat descriptors type: %i size: <%d, %d>", mat.type(), mat.rows, mat.cols);
+        output_descriptors_.clear();
+        for (int row = 0; row < mat.rows; row++) {
+            cv::Rect regionOfInterest (0, row, mat.cols, 1);
+            output_descriptors_.push_back (cv::Mat (mat, regionOfInterest));
+        }
+        ROS_DEBUG ("Transform - SUCCESS");
+    }
 }
