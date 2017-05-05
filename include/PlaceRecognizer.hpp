@@ -33,6 +33,7 @@ private:
     cv_bridge::CvImagePtr output_ptr_;
     std::vector< cv::Mat > output_descriptors_;
 
+    bool databaseChanged;
     boost::shared_ptr<ORBVocabulary> vocabulary_ptr_;
     boost::shared_ptr<ORBDatabase> database_ptr_;
 

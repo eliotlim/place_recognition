@@ -42,7 +42,7 @@ PlaceRecognizer::PlaceRecognizer() {
     output_pub_ = nh.advertise<sensor_msgs::Image> (output_topic, 3);
 
     loadDatabase();
-    // TODO: Save Database if modified
+    databaseChanged = false;
 
     // Initialize ORB Feature Detector and Extractors
     detector_ptr_ = cv::Ptr<cv::FeatureDetector> (new cv::ORB(1000));
@@ -56,14 +56,11 @@ PlaceRecognizer::~PlaceRecognizer() {}
 
 // Callback for Insertion Trigger
 void PlaceRecognizer::trigger_callback (const std_msgs::String &msg) {
-    //TODO: Implement DB Updating and Tagging
+    // Insert descriptor features into Database
     ROS_INFO ("DB Insertion TRIGGERED");
-    //DBoW2::EntryId entryID = database_ptr_->add (output_descriptors_);
-    DBoW2::BowVector vec;
-    // database_ptr_->getVocabulary()->transform (output_descriptors_, vec);
-    database_ptr_->add (output_descriptors_);
+    DBoW2::EntryId entryID = database_ptr_->add (output_descriptors_);
     ROS_INFO ("DB - Conversion to BoW Vector - OK");
-    //ROS_INFO ("DB Inserted EntryID: %u", entryID);
+    ROS_INFO ("DB Inserted EntryID: %u", entryID);
 }
 
 // Callback for Image Messages
@@ -153,6 +150,7 @@ bool PlaceRecognizer::loadDatabase (const std::string& db_filename) {
         loadVocabulary();
         database_ptr_ = boost::shared_ptr<ORBDatabase> (new ORBDatabase (*vocabulary_ptr_, false, 0));
         fail = false;
+        databaseChanged = true;
         ROS_INFO ("Database - Create SUCCESS");
     }
 
@@ -164,6 +162,9 @@ bool PlaceRecognizer::saveDatabase (const std::string& db_filename) {
 
     // Attempt to save database to disk
     ROS_DEBUG ("Database - Saving");
+    // Ignore if Database had no changes
+    if (!databaseChanged) return false;
+
     if (database_ptr_ != NULL)
         try {
             //ROS_INFO ("Database - Save - file: %s", db_filename.c_str());
