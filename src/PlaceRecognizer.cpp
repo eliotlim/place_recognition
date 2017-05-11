@@ -90,7 +90,7 @@ void PlaceRecognizer::image_callback (const sensor_msgs::ImageConstPtr &msg) {
     ROS_DEBUG ("computed cv::Mat output_descriptors_ size: <%d, %d>", descriptors.rows, descriptors.cols);
     transform_store_descriptors (descriptors);
 
-    // TODO: Perform Database Query for matching images
+    // Perform Database Query for matching images
     if (database_ptr_->size() > 0) {
         ROS_DEBUG ("DB - Querying");
         static DBoW2::QueryResults results;
@@ -98,6 +98,12 @@ void PlaceRecognizer::image_callback (const sensor_msgs::ImageConstPtr &msg) {
         ROS_DEBUG ("DB - Parsing Results");
         DBoW2::Result top_result = *(results.begin());
         ROS_INFO ("Top Result: Image %u - Score: %f", top_result.Id, top_result.Score);
+
+        // TODO: Draw on Augmented Image
+        stringstream result_stream;
+        result_stream << "Match: " << top_result.Id << " [" << top_result.Score << "]";
+        cv::putText (output_ptr_->image, result_stream.str(), cv::Point(0, 400), cv::FONT_HERSHEY_COMPLEX_SMALL, 2, cv::Scalar(255, 255, 255));
+
     }
 
     // Publish the augmented image
@@ -167,7 +173,7 @@ bool PlaceRecognizer::saveDatabase (const std::string& db_filename) {
 
     if (database_ptr_ != NULL)
         try {
-            //ROS_INFO ("Database - Save - file: %s", db_filename.c_str());
+            ROS_INFO ("Database - Save - file: %s", db_filename.c_str());
             database_ptr_->save (db_filename);
             ROS_DEBUG ("Database - Save SUCCESS");
         } catch (std::string &exception_msg) {
