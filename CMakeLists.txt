@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(place_recognition)
 
-find_package(OpenCV REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIRS})
+# find_package(OpenCV REQUIRED)
+# include_directories(${OpenCV_INCLUDE_DIRS})
 
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 catkin_package(
-  CATKIN_DEPENDS message_runtime sensor_msgs
+  CATKIN_DEPENDS message_runtime sensor_msgs cv_bridge
 )
 
 include_directories(
@@ -40,6 +40,6 @@ image_transport)
 target_link_libraries(place_recognizer
 ${PROJECT_NAME}
 ${catkin_LIBRARIES}
-${OpenCV_LIBS}
+# ${OpenCV_LIBS}
 ${PROJECT_SOURCE_DIR}/ThirdParty/DBoW2/lib/libDBoW2.so
 )

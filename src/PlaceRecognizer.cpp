@@ -45,8 +45,8 @@ PlaceRecognizer::PlaceRecognizer() {
     databaseChanged = false;
 
     // Initialize ORB Feature Detector and Extractors
-    detector_ptr_ = cv::Ptr<cv::FeatureDetector> (new cv::ORB(1000));
-    extractor_ptr_ = cv::Ptr<cv::DescriptorExtractor> (new cv::ORB(1000));
+    detector_ptr_ = cv::ORB::create("ORB");
+    extractor_ptr_ = cv::ORB::create("ORB");
     output_descriptors_ = std::vector<cv::Mat>();
 
     ROS_INFO ("Place Recognizer Setup OK");
